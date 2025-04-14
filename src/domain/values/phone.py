@@ -10,5 +10,5 @@ class PhoneNumber(BaseValueObject):
     _value: str
 
     def _validate(self) -> None:
-        if re.search(r'89\d{9}', self._value) is None:
+        if re.search(r'89\d{9}$', self._value) is None:
             raise PhoneFormatException(self._value)
