@@ -20,6 +20,7 @@ class Ticket:
     ticket_type: TicketType
     expression_date: datetime.date
     workout_number: WorkoutNumber
+    is_active: bool = field(default=True, kw_only=True)
 
     @classmethod
     def create_ticket(cls, ticket_type: TicketType) -> 'Ticket':
