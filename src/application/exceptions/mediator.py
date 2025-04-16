@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Type
 
 from src.application.commands.base import BaseCommand
 from src.domain.events.base import BaseEvent
@@ -14,7 +15,7 @@ class MediatorException(ApplicationException):
 
 @dataclass(frozen=True, eq=False)
 class CommandNotRegisteredException(MediatorException):
-    command: BaseCommand
+    command: Type[BaseCommand]
 
     @property
     def message(self) -> str:
@@ -23,7 +24,7 @@ class CommandNotRegisteredException(MediatorException):
 
 @dataclass(frozen=True, eq=False)
 class EventNotRegisteredException(MediatorException):
-    event: BaseEvent
+    event: Type[BaseEvent]
 
     @property
     def message(self) -> str:
