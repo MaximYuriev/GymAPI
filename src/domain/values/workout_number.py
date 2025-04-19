@@ -16,6 +16,7 @@ class WorkoutNumber(BaseValueObject):
                 raise WorkoutNumberTooBigException
 
     def __gt__(self, other: "WorkoutNumber") -> bool:
-        if self.value > other.value:
-            return True
+        if self.value is not None and other.value is not None:
+            if self.value > other.value:
+                return True
         return False

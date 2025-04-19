@@ -9,7 +9,7 @@ from src.domain.entities.ticket import TicketType
 class TicketTypeSchema(BaseModel):
     type_id: uuid.UUID
     type_name: str
-    workout_number: int
+    workout_number: int | None
     duration: datetime.timedelta
 
     @classmethod
@@ -24,5 +24,5 @@ class TicketTypeSchema(BaseModel):
 
 class CreateTicketTypeSchema(BaseModel):
     type_name: str
-    workout_number: int
+    workout_number: int | None = None
     duration: datetime.timedelta

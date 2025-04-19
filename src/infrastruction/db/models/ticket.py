@@ -13,7 +13,7 @@ class TicketTypeModel(Base):
     __tablename__ = "ticket_type"
     type_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     type_name: Mapped[str]
-    workout_number: Mapped[int]
+    workout_number: Mapped[int] = mapped_column(nullable=True)
     duration: Mapped[datetime.timedelta]
 
     @classmethod
