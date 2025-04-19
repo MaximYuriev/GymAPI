@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Type
 
 from src.application.commands.base import BaseCommand
+from src.application.queries.base import BaseQuery
 from src.domain.events.base import BaseEvent
 from src.domain.exceptions.base import ApplicationException
 
@@ -29,3 +30,12 @@ class EventNotRegisteredException(MediatorException):
     @property
     def message(self) -> str:
         return f"Событие '{self.event}' не зарегистрировано в медиаторе!"
+
+
+@dataclass(frozen=True, eq=False)
+class QueryNotRegisteredException(ApplicationException):
+    query: Type[BaseQuery]
+
+    @property
+    def message(self) -> str:
+        return f"Запрос '{self.query}' не зарегистрирован в медиаторе!"
