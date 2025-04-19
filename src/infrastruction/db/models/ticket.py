@@ -4,6 +4,8 @@ import uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.domain.entities.ticket import TicketType
+from src.domain.values.name import Name
+from src.domain.values.workout_number import WorkoutNumber
 from src.infrastruction.db.models.base import Base
 
 
@@ -26,7 +28,7 @@ class TicketTypeModel(Base):
     def to_entity(self) -> TicketType:
         return TicketType(
             type_id=self.type_id,
-            type_name=self.type_name,
-            workout_number=self.workout_number,
+            type_name=Name(self.type_name),
+            workout_number=WorkoutNumber(self.workout_number),
             duration=self.duration,
         )

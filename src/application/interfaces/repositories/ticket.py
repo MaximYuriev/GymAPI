@@ -13,4 +13,7 @@ class TicketTypeRepository(ABC):
     @abstractmethod
     async def check_exists_ticket_type_by_type_name(self, type_name: str) -> bool:
         pass
-   
+
+    @abstractmethod
+    async def get_all_ticket_types(self, limit: int, offset: int) -> list[TicketType]:
+        pass

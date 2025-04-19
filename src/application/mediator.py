@@ -78,6 +78,6 @@ class Mediator[ET: Type[BaseEvent], CT: Type[BaseCommand], QT: Type[BaseQuery], 
         if query_handler_type is None:
             raise QueryNotRegisteredException(query_type)
 
-        with mediator_dependencies_container() as container:
+        async with mediator_dependencies_container() as container:
             handler = await container.get(query_handler_type)
             return await handler.handle(query)

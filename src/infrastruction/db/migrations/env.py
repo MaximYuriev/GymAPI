@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from src.main import config as app_config
+from src.config import config as app_config
 from src.infrastruction.db.models.base import Base
 from src.infrastruction.db.models.ticket import TicketTypeModel
 

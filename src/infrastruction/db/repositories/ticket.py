@@ -20,3 +20,9 @@ class SQLAlchemyTicketTypeRepository(TicketTypeRepository):
     async def check_exists_ticket_type_by_type_name(self, type_name: str) -> bool:
         query = select(TicketTypeModel).where(TicketTypeModel.type_name == type_name)
         return bool(await self._session.scalar(query))
+
+    async def get_all_ticket_types(self, limit: int, offset: int) -> list[TicketType]:
+        query = select(TicketTypeModel).limit(limit).offset(offset)
+        query_result = await self._session.scalars(query)
+        model_list = query_result.all()
+        return [model.to_entity() for model in model_list]
