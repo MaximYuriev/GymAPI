@@ -20,6 +20,7 @@ class PaginationMixin:
 
     def _validate(self) -> None:
         self._validate_limit_value()
+        self._validate_offset_value()
 
     def _validate_limit_value(self) -> None:
         if self.limit <= 0:
