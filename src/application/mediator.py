@@ -1,16 +1,16 @@
 from dataclasses import dataclass, field
 from typing import Type, Any
 
+from dishka import AsyncContainer
+
 from src.application.commands.base import BaseCommand
 from src.application.exceptions.mediator import CommandNotRegisteredException, EventNotRegisteredException, \
     QueryNotRegisteredException
 from src.application.handlers.commands.base import BaseCommandHandler
 from src.application.handlers.events.base import BaseEventHandler
-from src.application.queries.base import BaseQuery
-
 from src.application.handlers.queries.base import BaseQueryHandler
+from src.application.queries.base import BaseQuery
 from src.domain.events.base import BaseEvent
-from src.ioc.mediator import mediator_dependencies_container
 
 
 @dataclass(frozen=True, eq=False)
@@ -27,6 +27,7 @@ class Mediator[ET: Type[BaseEvent], CT: Type[BaseCommand], QT: Type[BaseQuery], 
         default_factory=dict,
         kw_only=True,
     )
+    _mediator_di_container: AsyncContainer
 
     def register_event(
             self,
@@ -56,7 +57,7 @@ class Mediator[ET: Type[BaseEvent], CT: Type[BaseCommand], QT: Type[BaseQuery], 
         if command_handler_type is None:
             raise CommandNotRegisteredException(command_type)
 
-        async with mediator_dependencies_container() as container:
+        async with self._mediator_di_container() as container:
             handler = await container.get(command_handler_type)
             return await handler.handle(command)
 
@@ -67,7 +68,7 @@ class Mediator[ET: Type[BaseEvent], CT: Type[BaseCommand], QT: Type[BaseQuery], 
         if event_handler_type is None:
             raise EventNotRegisteredException(event_type)
 
-        with mediator_dependencies_container() as container:
+        async with self._mediator_di_container() as container:
             handler = await container.get(event_handler_type)
             return await handler.handle(event)
 
@@ -78,6 +79,6 @@ class Mediator[ET: Type[BaseEvent], CT: Type[BaseCommand], QT: Type[BaseQuery], 
         if query_handler_type is None:
             raise QueryNotRegisteredException(query_type)
 
-        async with mediator_dependencies_container() as container:
+        async with self._mediator_di_container() as container:
             handler = await container.get(query_handler_type)
             return await handler.handle(query)
