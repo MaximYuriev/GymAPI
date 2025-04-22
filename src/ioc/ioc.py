@@ -1,6 +1,8 @@
 from dishka import Provider, provide, Scope, make_async_container, AsyncContainer
 
+from src.application.commands.customer import CreateCustomerCommand
 from src.application.commands.ticket import CreateTicketTypeCommand
+from src.application.handlers.commands.customer import CreateCustomerCommandHandler
 from src.application.handlers.commands.ticket import CreateTicketTypeCommandHandler
 from src.application.handlers.queries.ticket import GetAllTicketTypesQueryHandler
 from src.application.mediator import Mediator
@@ -16,6 +18,10 @@ class MediatorProvider(Provider):
         mediator.register_command(
             command=CreateTicketTypeCommand,
             command_handler=CreateTicketTypeCommandHandler,
+        )
+        mediator.register_command(
+            command=CreateCustomerCommand,
+            command_handler=CreateCustomerCommandHandler,
         )
 
         mediator.register_query(

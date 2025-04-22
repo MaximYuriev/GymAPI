@@ -3,10 +3,13 @@ from typing import AsyncIterable
 from dishka import Provider, from_context, Scope, provide, make_async_container
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessionmaker, AsyncSession
 
+from src.application.handlers.commands.customer import CreateCustomerCommandHandler
 from src.application.handlers.commands.ticket import CreateTicketTypeCommandHandler
 from src.application.handlers.queries.ticket import GetAllTicketTypesQueryHandler
+from src.application.interfaces.repositories.customer import CustomerRepository
 from src.application.interfaces.repositories.ticket import TicketTypeRepository
 from src.config import Config, config
+from src.infrastruction.db.repositories.customer import SQLAlchemyCustomerRepository
 from src.infrastruction.db.repositories.ticket import SQLAlchemyTicketTypeRepository
 
 
@@ -35,8 +38,16 @@ class TicketProvider(Provider):
     get_all_ticket_types_query_handler = provide(GetAllTicketTypesQueryHandler)
 
 
+class CustomerProvider(Provider):
+    scope = Scope.REQUEST
+
+    customer_repository = provide(SQLAlchemyCustomerRepository, provides=CustomerRepository)
+    create_customer_command_handler = provide(CreateCustomerCommandHandler)
+
+
 mediator_dependencies_container = make_async_container(
     SQLAlchemyProvider(),
     TicketProvider(),
+    CustomerProvider(),
     context={Config: config}
 )

@@ -7,6 +7,7 @@ from alembic import context
 from src.config import config as app_config
 from src.infrastruction.db.models.base import Base
 from src.infrastruction.db.models.ticket import TicketTypeModel
+from src.infrastruction.db.models.customer import CustomerModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

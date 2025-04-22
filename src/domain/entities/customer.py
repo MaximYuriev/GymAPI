@@ -7,7 +7,7 @@ from src.domain.values.phone import PhoneNumber
 
 
 @dataclass
-class Consumer:
+class Customer:
     consumer_id: uuid.UUID = field(default_factory=uuid.uuid4, kw_only=True)
     name: Name
     surname: Surname
