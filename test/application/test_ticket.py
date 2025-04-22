@@ -5,7 +5,7 @@ from faker import Faker
 
 from src.application.commands.ticket import CreateTicketTypeCommand
 from src.application.exceptions.ticket import TicketTypeAlreadyExistException
-from src.application.mediator import Mediator
+from src.application.mediator.mediator import Mediator
 from src.application.queries.ticket import GetAllTicketTypesQuery
 from src.domain.entities.ticket import TicketType
 

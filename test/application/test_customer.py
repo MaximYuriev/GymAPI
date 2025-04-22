@@ -5,7 +5,7 @@ from faker.proxy import Faker
 
 from src.application.commands.customer import CreateCustomerCommand
 from src.application.exceptions.customer import PhoneNumberNotUniqueException
-from src.application.mediator import Mediator
+from src.application.mediator.mediator import Mediator
 from src.domain.entities.customer import Customer
 
 

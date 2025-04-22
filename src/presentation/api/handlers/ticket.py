@@ -7,7 +7,7 @@ from starlette import status
 
 from src.application.commands.ticket import CreateTicketTypeCommand
 from src.application.exceptions.mediator import MediatorException
-from src.application.mediator import Mediator
+from src.application.mediator.mediator import Mediator
 from src.application.queries.ticket import GetAllTicketTypesQuery
 from src.domain.entities.ticket import TicketType
 from src.domain.exceptions.base import ApplicationException

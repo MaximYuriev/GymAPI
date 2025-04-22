@@ -5,7 +5,7 @@ from starlette import status
 
 from src.application.commands.customer import CreateCustomerCommand
 from src.application.exceptions.mediator import MediatorException
-from src.application.mediator import Mediator
+from src.application.mediator.mediator import Mediator
 from src.domain.entities.customer import Customer
 from src.domain.exceptions.base import ApplicationException
 from src.presentation.api.commons.response import APIResponse
