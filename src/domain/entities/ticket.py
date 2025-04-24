@@ -2,12 +2,13 @@ import datetime
 import uuid
 from dataclasses import dataclass, field
 
+from src.domain.entities.base import BaseEntity
 from src.domain.values.name import Name
 from src.domain.values.workout_number import WorkoutNumber
 
 
 @dataclass
-class TicketType:
+class TicketType(BaseEntity):
     type_id: uuid.UUID = field(default_factory=uuid.uuid4, kw_only=True)
     type_name: Name
     workout_number: WorkoutNumber
@@ -15,7 +16,7 @@ class TicketType:
 
 
 @dataclass
-class Ticket:
+class Ticket(BaseEntity):
     ticket_id: uuid.UUID = field(default_factory=uuid.uuid4, kw_only=True)
     ticket_type: TicketType
     expression_date: datetime.date

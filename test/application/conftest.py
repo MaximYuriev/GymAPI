@@ -2,13 +2,14 @@ import random
 
 import pytest
 
-from src.application.mediator.bootstrap import init_mediator
+from src.ioc import container
 from src.application.mediator.mediator import Mediator
 
 
 @pytest.fixture(scope="session")
-def mediator() -> Mediator:
-    return init_mediator()
+async def mediator() -> Mediator:
+    async with container() as _container:
+        return await _container.get(Mediator)
 
 
 @pytest.fixture

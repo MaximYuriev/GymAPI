@@ -33,9 +33,16 @@ class EventNotRegisteredException(MediatorException):
 
 
 @dataclass(frozen=True, eq=False)
-class QueryNotRegisteredException(ApplicationException):
+class QueryNotRegisteredException(MediatorException):
     query: Type[BaseQuery]
 
     @property
     def message(self) -> str:
         return f"Запрос '{self.query}' не зарегистрирован в медиаторе!"
+
+
+@dataclass(frozen=True, eq=False)
+class DiContainerNotRegisteredException(MediatorException):
+    @property
+    def message(self) -> str:
+        return "Контейнер зависимостей для внедрения не зарегистрирован в системе!"

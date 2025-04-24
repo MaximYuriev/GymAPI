@@ -5,7 +5,7 @@ from dishka import AsyncContainer
 
 from src.application.commands.base import BaseCommand
 from src.application.exceptions.mediator import CommandNotRegisteredException, EventNotRegisteredException, \
-    QueryNotRegisteredException
+    QueryNotRegisteredException, DiContainerNotRegisteredException
 from src.application.handlers.commands.base import BaseCommandHandler
 from src.application.handlers.events.base import BaseEventHandler
 from src.application.handlers.queries.base import BaseQueryHandler
@@ -13,7 +13,7 @@ from src.application.queries.base import BaseQuery
 from src.domain.events.base import BaseEvent
 
 
-@dataclass(frozen=True, eq=False)
+@dataclass(eq=False)
 class Mediator[ET: Type[BaseEvent], CT: Type[BaseCommand], QT: Type[BaseQuery], ER: Any, CR: Any, QR: Any]:
     _events_map: dict[ET, Type[BaseEventHandler]] = field(
         default_factory=dict,
@@ -27,7 +27,10 @@ class Mediator[ET: Type[BaseEvent], CT: Type[BaseCommand], QT: Type[BaseQuery], 
         default_factory=dict,
         kw_only=True,
     )
-    _mediator_di_container: AsyncContainer
+    _mediator_di_container: AsyncContainer | None = None
+
+    def register_di_container(self, di_container: AsyncContainer) -> None:
+        self._mediator_di_container = di_container
 
     def register_event(
             self,
@@ -57,6 +60,9 @@ class Mediator[ET: Type[BaseEvent], CT: Type[BaseCommand], QT: Type[BaseQuery], 
         if command_handler_type is None:
             raise CommandNotRegisteredException(command_type)
 
+        if self._mediator_di_container is None:
+            raise DiContainerNotRegisteredException
+
         async with self._mediator_di_container() as container:
             handler = await container.get(command_handler_type)
             return await handler.handle(command)
@@ -68,6 +74,9 @@ class Mediator[ET: Type[BaseEvent], CT: Type[BaseCommand], QT: Type[BaseQuery], 
         if event_handler_type is None:
             raise EventNotRegisteredException(event_type)
 
+        if self._mediator_di_container is None:
+            raise DiContainerNotRegisteredException
+
         async with self._mediator_di_container() as container:
             handler = await container.get(event_handler_type)
             return await handler.handle(event)
@@ -78,6 +87,9 @@ class Mediator[ET: Type[BaseEvent], CT: Type[BaseCommand], QT: Type[BaseQuery], 
 
         if query_handler_type is None:
             raise QueryNotRegisteredException(query_type)
+
+        if self._mediator_di_container is None:
+            raise DiContainerNotRegisteredException
 
         async with self._mediator_di_container() as container:
             handler = await container.get(query_handler_type)

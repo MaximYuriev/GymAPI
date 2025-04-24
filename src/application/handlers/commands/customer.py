@@ -22,12 +22,15 @@ class CreateCustomerCommandHandler(BaseCommandHandler):
         if not (await self._customer_repository.check_phone_number_unique(phone.value)):
             raise PhoneNumberNotUniqueException(phone.value)
 
-        customer = Customer(
+        customer = Customer.create_customer(
             name=name,
             surname=surname,
             patronymic=patronymic,
             phone=phone,
         )
         await self._customer_repository.add_customer(customer)
+
+        for event in customer.pull_event():
+            await self._event_mediator.handle_event(event)
 
         return customer

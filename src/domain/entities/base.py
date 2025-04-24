@@ -11,7 +11,7 @@ class BaseEntity(ABC):
     def _push_event(self, base_event: BaseEvent) -> None:
         self._event_list.append(base_event)
 
-    def _pull_event(self) -> list[BaseEvent]:
+    def pull_event(self) -> list[BaseEvent]:
         pulled_event_list = [event for event in self._event_list]
         self._event_list.clear()
         return pulled_event_list
