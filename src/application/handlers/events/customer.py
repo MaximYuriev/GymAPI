@@ -9,5 +9,5 @@ class NewCustomerCreatedEventHandler(BaseEventHandler):
     async def handle(self, event: NewCustomerCreatedEvent) -> None:
         print(
             f"*Отправка смс на номер {event.phone}* "
-            f"Уважаемый, {event.surname} {event.name} {event.patronymic}, благодарим за покупку абонемента!"
+            f"Уважаемый, {event.surname} {event.name} {event.patronymic}, благодарим за регистрацию в нашем сервисе!"
         )
