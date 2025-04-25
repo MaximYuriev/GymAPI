@@ -1,10 +1,14 @@
 import datetime
+import uuid
 
 from src.domain.entities.ticket import TicketType, Ticket
 
 
 def test_create_ticket_success(ticket_type: TicketType):
-    ticket = Ticket.create_ticket(ticket_type)
+    ticket = Ticket.create_ticket(
+        customer_id=uuid.uuid4(),
+        ticket_type=ticket_type,
+    )
 
     assert ticket.ticket_type == ticket_type
     assert ticket.workout_number == ticket_type.workout_number

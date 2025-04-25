@@ -10,7 +10,7 @@ from src.domain.values.phone import PhoneNumber
 
 @dataclass
 class Customer(BaseEntity):
-    consumer_id: uuid.UUID = field(default_factory=uuid.uuid4, kw_only=True)
+    customer_id: uuid.UUID = field(default_factory=uuid.uuid4, kw_only=True)
     name: Name
     surname: Surname
     patronymic: Patronymic

@@ -10,7 +10,7 @@ from src.infrastruction.db.models.base import Base
 
 class CustomerModel(Base):
     __tablename__ = "customer"
-    consumer_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
     name: Mapped[str]
     surname: Mapped[str]
     patronymic: Mapped[str] = mapped_column(nullable=True)
@@ -19,7 +19,7 @@ class CustomerModel(Base):
     @classmethod
     def from_entity(cls, customer: Customer) -> 'CustomerModel':
         return cls(
-            consumer_id=customer.consumer_id,
+            customer_id=customer.customer_id,
             name=customer.name.value,
             surname=customer.surname.value,
             patronymic=customer.patronymic.value,
@@ -28,7 +28,7 @@ class CustomerModel(Base):
 
     def to_entity(self) -> Customer:
         return Customer(
-            consumer_id=self.consumer_id,
+            customer_id=self.customer_id,
             name=Name(self.name),
             surname=Surname(self.surname),
             patronymic=Patronymic(self.patronymic),

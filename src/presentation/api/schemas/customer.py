@@ -15,7 +15,7 @@ class CustomerSchema(BaseModel):
     @classmethod
     def from_entity(cls, customer: Customer) -> 'CustomerSchema':
         return cls(
-            consumer_id=customer.consumer_id,
+            consumer_id=customer.customer_id,
             name=customer.name.value,
             surname=customer.surname.value,
             patronymic=customer.patronymic.value,
