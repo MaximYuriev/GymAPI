@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import dataclass
 
 from src.domain.exceptions.base import ApplicationException
@@ -10,3 +11,12 @@ class TicketTypeAlreadyExistException(ApplicationException):
     @property
     def message(self) -> str:
         return f"Тип абонемента с таким названием: '{self.type_name}' уже существует!"
+
+
+@dataclass(frozen=True, eq=False)
+class TicketTypeNotFoundException(ApplicationException):
+    ticket_type_id: uuid.UUID
+
+    @property
+    def message(self) -> str:
+        return f"Тип абонемента с id='{self.ticket_type_id}' не найден!"

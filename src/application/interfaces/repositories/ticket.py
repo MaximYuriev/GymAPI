@@ -1,7 +1,8 @@
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from src.domain.entities.ticket import TicketType
+from src.domain.entities.ticket import TicketType, Ticket
 
 
 @dataclass(frozen=True, eq=False)
@@ -16,4 +17,19 @@ class TicketTypeRepository(ABC):
 
     @abstractmethod
     async def get_all_ticket_types(self, limit: int, offset: int) -> list[TicketType]:
+        pass
+
+    @abstractmethod
+    async def get_ticket_type_by_id(self, ticket_type_id: uuid.UUID) -> TicketType | None:
+        pass
+
+
+@dataclass(frozen=True, eq=False)
+class TicketRepository(ABC):
+    @abstractmethod
+    async def add_ticket(self, ticket: Ticket) -> None:
+        pass
+
+    @abstractmethod
+    async def check_exist_customers_active_ticket(self, customer_id: uuid.UUID) -> bool:
         pass

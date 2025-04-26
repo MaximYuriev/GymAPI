@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import dataclass
 
 from src.application.commands.base import BaseCommand
@@ -9,3 +10,9 @@ class CreateCustomerCommand(BaseCommand):
     surname: str
     patronymic: str | None
     phone: str
+
+
+@dataclass(frozen=True, eq=False)
+class BuyNewTicketCommand(BaseCommand):
+    customer_id: uuid.UUID
+    ticket_type_id: uuid.UUID

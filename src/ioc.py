@@ -3,21 +3,21 @@ from typing import AsyncIterable
 from dishka import Provider, from_context, Scope, provide, AsyncContainer, make_async_container
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessionmaker, AsyncSession
 
-from src.application.commands.customer import CreateCustomerCommand
+from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand
 from src.application.commands.ticket import CreateTicketTypeCommand
-from src.application.handlers.commands.customer import CreateCustomerCommandHandler
+from src.application.handlers.commands.customer import CreateCustomerCommandHandler, BuyNewTicketCommandHandler
 from src.application.handlers.commands.ticket import CreateTicketTypeCommandHandler
-from src.application.handlers.events.customer import NewCustomerCreatedEventHandler
+from src.application.handlers.events.customer import NewCustomerCreatedEventHandler, CustomerBoughtNewTicketEventHandler
 from src.application.handlers.queries.ticket import GetAllTicketTypesQueryHandler
 from src.application.interfaces.repositories.customer import CustomerRepository
-from src.application.interfaces.repositories.ticket import TicketTypeRepository
+from src.application.interfaces.repositories.ticket import TicketTypeRepository, TicketRepository
 from src.application.mediator.mediator import Mediator
 from src.application.mediator.protocols.event_mediator import EventMediator
 from src.application.queries.ticket import GetAllTicketTypesQuery
 from src.config import Config, config
-from src.domain.events.customer import NewCustomerCreatedEvent
+from src.domain.events.customer import NewCustomerCreatedEvent, CustomerBoughtNewTicketEvent
 from src.infrastruction.db.repositories.customer import SQLAlchemyCustomerRepository
-from src.infrastruction.db.repositories.ticket import SQLAlchemyTicketTypeRepository
+from src.infrastruction.db.repositories.ticket import SQLAlchemyTicketTypeRepository, SQLAlchemyTicketRepository
 
 
 class SQLAlchemyProvider(Provider):
@@ -52,6 +52,10 @@ class MediatorProvider(Provider):
             event=NewCustomerCreatedEvent,
             event_handler=NewCustomerCreatedEventHandler,
         )
+        mediator.register_event(
+            event=CustomerBoughtNewTicketEvent,
+            event_handler=CustomerBoughtNewTicketEventHandler,
+        )
 
         # register commands
         mediator.register_command(
@@ -61,6 +65,10 @@ class MediatorProvider(Provider):
         mediator.register_command(
             command=CreateCustomerCommand,
             command_handler=CreateCustomerCommandHandler,
+        )
+        mediator.register_command(
+            command=BuyNewTicketCommand,
+            command_handler=BuyNewTicketCommandHandler,
         )
 
         # register queries
@@ -80,7 +88,10 @@ class TicketProvider(Provider):
     scope = Scope.REQUEST
 
     ticket_type_repository = provide(SQLAlchemyTicketTypeRepository, provides=TicketTypeRepository)
+    ticket_repository = provide(SQLAlchemyTicketRepository, provides=TicketRepository)
+
     create_ticket_type_command_handler = provide(CreateTicketTypeCommandHandler)
+
     get_all_ticket_types_query_handler = provide(GetAllTicketTypesQueryHandler)
 
 
@@ -88,8 +99,12 @@ class CustomerProvider(Provider):
     scope = Scope.REQUEST
 
     customer_repository = provide(SQLAlchemyCustomerRepository, provides=CustomerRepository)
+
     create_customer_command_handler = provide(CreateCustomerCommandHandler)
+    buy_new_ticket_command_handler = provide(BuyNewTicketCommandHandler)
+
     new_customer_created_event_handler = provide(NewCustomerCreatedEventHandler)
+    bought_new_ticket_event_handler = provide(CustomerBoughtNewTicketEventHandler)
 
 
 async def create_di_container() -> AsyncContainer:
