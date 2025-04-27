@@ -1,20 +1,18 @@
 import uuid
 
-from sqlalchemy.orm import Mapped, mapped_column
+from beanie import Document
 
 from src.domain.entities.customer import Customer
 from src.domain.values.name import Name, Surname, Patronymic
 from src.domain.values.phone import PhoneNumber
-from src.infrastruction.db.models.base import Base
 
 
-class CustomerModel(Base):
-    __tablename__ = "customer"
-    customer_id: Mapped[uuid.UUID] = mapped_column(primary_key=True)
-    name: Mapped[str]
-    surname: Mapped[str]
-    patronymic: Mapped[str] = mapped_column(nullable=True)
-    phone: Mapped[str] = mapped_column(unique=True)
+class CustomerModel(Document):
+    customer_id: uuid.UUID
+    name: str
+    surname: str
+    patronymic: str
+    phone: str
 
     @classmethod
     def from_entity(cls, customer: Customer) -> 'CustomerModel':
@@ -34,3 +32,6 @@ class CustomerModel(Base):
             patronymic=Patronymic(self.patronymic),
             phone=PhoneNumber(self.phone),
         )
+
+    class Settings:
+        name = "customer"

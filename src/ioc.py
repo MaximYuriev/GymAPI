@@ -1,7 +1,6 @@
-from typing import AsyncIterable
-
-from dishka import Provider, from_context, Scope, provide, AsyncContainer, make_async_container
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine, async_sessionmaker, AsyncSession
+from beanie import init_beanie
+from dishka import Provider, from_context, Scope, provide, make_async_container
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand
 from src.application.commands.ticket import CreateTicketTypeCommand
@@ -16,25 +15,23 @@ from src.application.mediator.protocols.event_mediator import EventMediator
 from src.application.queries.ticket import GetAllTicketTypesQuery
 from src.config import Config, config
 from src.domain.events.customer import NewCustomerCreatedEvent, CustomerBoughtNewTicketEvent
-from src.infrastruction.db.repositories.customer import SQLAlchemyCustomerRepository
-from src.infrastruction.db.repositories.ticket import SQLAlchemyTicketTypeRepository, SQLAlchemyTicketRepository
+from src.infrastruction.db.models.customer import CustomerModel
+from src.infrastruction.db.models.ticket import TicketTypeModel, TicketModel
+from src.infrastruction.db.repositories.customer import BeanieCustomerRepository
+from src.infrastruction.db.repositories.ticket import BeanieTicketRepository, BeanieTicketTypeRepository
 
 
-class SQLAlchemyProvider(Provider):
+class BeanieProvider(Provider):
     config = from_context(provides=Config, scope=Scope.APP)
 
     @provide(scope=Scope.APP)
-    def get_async_engine(self, config: Config) -> AsyncEngine:
-        return create_async_engine(config.postgres.db_url, echo=False)
+    async def get_mongodb_async_client(self, _config: Config) -> AsyncIOMotorClient:
+        client = AsyncIOMotorClient(
+            _config.mongodb.url,
+            connectTimeoutMS=5000,
+        )
 
-    @provide(scope=Scope.APP)
-    def get_async_session_maker(self, engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
-        return async_sessionmaker(engine, expire_on_commit=False)
-
-    @provide(scope=Scope.REQUEST)
-    async def get_session(self, session_maker: async_sessionmaker[AsyncSession]) -> AsyncIterable[AsyncSession]:
-        async with session_maker() as session:
-            yield session
+        return client
 
 
 class MediatorProvider(Provider):
@@ -87,8 +84,18 @@ class MediatorProvider(Provider):
 class TicketProvider(Provider):
     scope = Scope.REQUEST
 
-    ticket_type_repository = provide(SQLAlchemyTicketTypeRepository, provides=TicketTypeRepository)
-    ticket_repository = provide(SQLAlchemyTicketRepository, provides=TicketRepository)
+    @provide(scope=Scope.APP)
+    async def init_beanie_ticket_type_repository(self, client: AsyncIOMotorClient) -> BeanieTicketTypeRepository:
+        await init_beanie(client.db_name, document_models=[TicketTypeModel])
+        return BeanieTicketTypeRepository()
+
+    @provide(scope=Scope.APP)
+    async def init_beanie_ticket_repository(self, client: AsyncIOMotorClient) -> BeanieTicketRepository:
+        await init_beanie(client.db_name, document_models=[TicketModel])
+        return BeanieTicketRepository()
+
+    ticket_type_repository = provide(init_beanie_ticket_type_repository, provides=TicketTypeRepository, scope=Scope.APP)
+    ticket_repository = provide(init_beanie_ticket_repository, provides=TicketRepository, scope=Scope.APP)
 
     create_ticket_type_command_handler = provide(CreateTicketTypeCommandHandler)
 
@@ -98,7 +105,12 @@ class TicketProvider(Provider):
 class CustomerProvider(Provider):
     scope = Scope.REQUEST
 
-    customer_repository = provide(SQLAlchemyCustomerRepository, provides=CustomerRepository)
+    @provide(scope=Scope.APP)
+    async def init_beanie_customer_repository(self, client: AsyncIOMotorClient) -> BeanieCustomerRepository:
+        await init_beanie(client.db_name, document_models=[CustomerModel])
+        return BeanieCustomerRepository()
+
+    customer_repository = provide(init_beanie_customer_repository, provides=CustomerRepository, scope=Scope.APP)
 
     create_customer_command_handler = provide(CreateCustomerCommandHandler)
     buy_new_ticket_command_handler = provide(BuyNewTicketCommandHandler)
@@ -107,24 +119,8 @@ class CustomerProvider(Provider):
     bought_new_ticket_event_handler = provide(CustomerBoughtNewTicketEventHandler)
 
 
-async def create_di_container() -> AsyncContainer:
-    di_container = make_async_container(
-        SQLAlchemyProvider(),
-        MediatorProvider(),
-        TicketProvider(),
-        CustomerProvider(),
-        context={Config: config}
-    )
-
-    async with di_container() as _container:
-        mediator = await _container.get(Mediator)
-        mediator.register_di_container(di_container)
-
-    return di_container
-
-
 container = make_async_container(
-    SQLAlchemyProvider(),
+    BeanieProvider(),
     MediatorProvider(),
     TicketProvider(),
     CustomerProvider(),

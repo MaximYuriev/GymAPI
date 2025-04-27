@@ -6,21 +6,21 @@ class BaseConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra="ignore")
 
 
-class PostgresConfig(BaseConfig):
-    model_config = SettingsConfigDict(env_prefix="POSTGRES_")
+class MongoDBConfig(BaseConfig):
+    model_config = SettingsConfigDict(env_prefix="MONGODB_")
+
     host: str
-    port: int
-    user: str
+    port: str
+    username: str
     password: str
-    db: str
 
     @property
-    def db_url(self) -> str:
-        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
+    def url(self) -> str:
+        return f"mongodb://{self.username}:{self.password}@{self.host}:{self.port}"
 
 
 class Config(BaseSettings):
-    postgres: PostgresConfig = Field(default_factory=PostgresConfig)
+    mongodb: MongoDBConfig = Field(default_factory=MongoDBConfig)
 
 
 config = Config()
