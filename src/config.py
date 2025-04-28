@@ -13,6 +13,7 @@ class MongoDBConfig(BaseConfig):
     port: str
     username: str
     password: str
+    db_name: str
 
     @property
     def url(self) -> str:

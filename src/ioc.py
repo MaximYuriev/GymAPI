@@ -31,6 +31,15 @@ class BeanieProvider(Provider):
             connectTimeoutMS=5000,
         )
 
+        await init_beanie(
+            database=client.get_database(_config.mongodb.db_name),
+            document_models=[
+                TicketModel,
+                CustomerModel,
+                TicketTypeModel,
+            ],
+        )
+
         return client
 
 
@@ -86,12 +95,10 @@ class TicketProvider(Provider):
 
     @provide(scope=Scope.APP)
     async def init_beanie_ticket_type_repository(self, client: AsyncIOMotorClient) -> BeanieTicketTypeRepository:
-        await init_beanie(client.db_name, document_models=[TicketTypeModel])
         return BeanieTicketTypeRepository()
 
     @provide(scope=Scope.APP)
     async def init_beanie_ticket_repository(self, client: AsyncIOMotorClient) -> BeanieTicketRepository:
-        await init_beanie(client.db_name, document_models=[TicketModel])
         return BeanieTicketRepository()
 
     ticket_type_repository = provide(init_beanie_ticket_type_repository, provides=TicketTypeRepository, scope=Scope.APP)
@@ -107,10 +114,9 @@ class CustomerProvider(Provider):
 
     @provide(scope=Scope.APP)
     async def init_beanie_customer_repository(self, client: AsyncIOMotorClient) -> BeanieCustomerRepository:
-        await init_beanie(client.db_name, document_models=[CustomerModel])
         return BeanieCustomerRepository()
 
-    customer_repository = provide(init_beanie_customer_repository, provides=CustomerRepository, scope=Scope.APP)
+    customer_repository = provide(BeanieCustomerRepository, provides=CustomerRepository, scope=Scope.APP)
 
     create_customer_command_handler = provide(CreateCustomerCommandHandler)
     buy_new_ticket_command_handler = provide(BuyNewTicketCommandHandler)
