@@ -1,12 +1,13 @@
 from typing import AsyncIterable
 
 import pytest
+from beanie import init_beanie
 from faker import Faker
-from sqlalchemy import NullPool
-from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, AsyncSession, create_async_engine
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from src.config import config
-from src.infrastruction.db.models.base import Base
+from src.infrastruction.db.models.customer import CustomerModel
+from src.infrastruction.db.models.ticket import TicketModel, TicketTypeModel
 
 
 @pytest.fixture(scope="session")
@@ -15,25 +16,23 @@ def faker() -> Faker:
 
 
 @pytest.fixture(scope="session")
-def async_engine() -> AsyncEngine:
-    return create_async_engine(config.postgres.db_url, echo=False, poolclass=NullPool)
-
-
-@pytest.fixture(scope="session")
-def async_session_maker(async_engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
-    return async_sessionmaker(async_engine, expire_on_commit=False)
-
-
-@pytest.fixture
-async def async_session(async_session_maker: async_sessionmaker[AsyncSession]) -> AsyncIterable[AsyncSession]:
-    async with async_session_maker() as session:
-        yield session
+def motor_client() -> AsyncIOMotorClient:
+    client = AsyncIOMotorClient(
+        config.mongodb.url,
+        connectTimeoutMS=3000,
+    )
+    return client
 
 
 @pytest.fixture
-async def prepare_database(async_engine: AsyncEngine):
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+async def prepare_database(motor_client):
+    await init_beanie(
+        database=motor_client.get_database(config.mongodb.db_name),
+        document_models=[
+            TicketModel,
+            CustomerModel,
+            TicketTypeModel,
+        ],
+    )
     yield
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    await motor_client.drop_database(config.mongodb.db_name)

@@ -11,7 +11,7 @@ class CustomerModel(Document):
     customer_id: uuid.UUID
     name: str
     surname: str
-    patronymic: str
+    patronymic: str | None
     phone: str
 
     @classmethod
