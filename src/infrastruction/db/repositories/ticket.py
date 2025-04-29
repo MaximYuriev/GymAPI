@@ -21,9 +21,23 @@ class BeanieTicketTypeRepository(TicketTypeRepository):
         return [model.to_entity() for model in model_list]
 
     async def get_ticket_type_by_id(self, ticket_type_id: uuid.UUID) -> TicketType | None:
-        model = await TicketTypeModel.find_one({"type_id": ticket_type_id})
+        model = await self._get_model_by_id(ticket_type_id=ticket_type_id)
         if model is not None:
             return model.to_entity()
+
+    async def update_ticket_type(self, ticket_type: TicketType) -> None:
+        model = await self._get_model_by_id(ticket_type_id=ticket_type.type_id)
+        model.type_name = ticket_type.type_name.value
+
+        await model.save()
+
+    async def delete_ticket_type(self, ticket_type: TicketType) -> None:
+        model = await self._get_model_by_id(ticket_type_id=ticket_type.type_id)
+        await model.delete()
+
+    @staticmethod
+    async def _get_model_by_id(ticket_type_id: uuid.UUID) -> TicketTypeModel:
+        return await TicketTypeModel.find_one({"type_id": ticket_type_id})
 
 
 @dataclass(frozen=True, eq=False)

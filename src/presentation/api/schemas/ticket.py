@@ -46,5 +46,9 @@ class CreateTicketTypeSchema(BaseModel):
     duration: datetime.timedelta
 
 
+class UpdateTicketTypeSchema(BaseModel):
+    type_name: str
+
+
 class BuyTicketSchema(BaseModel):
     ticket_type_id: uuid.UUID

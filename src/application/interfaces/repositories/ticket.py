@@ -23,6 +23,14 @@ class TicketTypeRepository(ABC):
     async def get_ticket_type_by_id(self, ticket_type_id: uuid.UUID) -> TicketType | None:
         pass
 
+    @abstractmethod
+    async def update_ticket_type(self, ticket_type: TicketType) -> None:
+        pass
+
+    @abstractmethod
+    async def delete_ticket_type(self, ticket_type: TicketType) -> None:
+        pass
+
 
 @dataclass(frozen=True, eq=False)
 class TicketRepository(ABC):

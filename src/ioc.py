@@ -3,16 +3,17 @@ from dishka import Provider, from_context, Scope, provide, make_async_container
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand
-from src.application.commands.ticket import CreateTicketTypeCommand
+from src.application.commands.ticket import CreateTicketTypeCommand, UpdateTicketTypeCommand, DeleteTicketTypeCommand
 from src.application.handlers.commands.customer import CreateCustomerCommandHandler, BuyNewTicketCommandHandler
-from src.application.handlers.commands.ticket import CreateTicketTypeCommandHandler
+from src.application.handlers.commands.ticket import CreateTicketTypeCommandHandler, UpdateTicketTypeCommandHandler, \
+    DeleteTicketTypeCommandHandler
 from src.application.handlers.events.customer import NewCustomerCreatedEventHandler, CustomerBoughtNewTicketEventHandler
-from src.application.handlers.queries.ticket import GetAllTicketTypesQueryHandler
+from src.application.handlers.queries.ticket import GetAllTicketTypesQueryHandler, GetTicketTypeQueryHandler
 from src.application.interfaces.repositories.customer import CustomerRepository
 from src.application.interfaces.repositories.ticket import TicketTypeRepository, TicketRepository
 from src.application.mediator.mediator import Mediator
 from src.application.mediator.protocols.event_mediator import EventMediator
-from src.application.queries.ticket import GetAllTicketTypesQuery
+from src.application.queries.ticket import GetAllTicketTypesQuery, GetTicketTypeQuery
 from src.config import Config, config
 from src.domain.events.customer import NewCustomerCreatedEvent, CustomerBoughtNewTicketEvent
 from src.infrastruction.db.models.customer import CustomerModel
@@ -69,6 +70,14 @@ class MediatorProvider(Provider):
             command_handler=CreateTicketTypeCommandHandler,
         )
         mediator.register_command(
+            command=UpdateTicketTypeCommand,
+            command_handler=UpdateTicketTypeCommandHandler,
+        )
+        mediator.register_command(
+            command=DeleteTicketTypeCommand,
+            command_handler=DeleteTicketTypeCommandHandler,
+        )
+        mediator.register_command(
             command=CreateCustomerCommand,
             command_handler=CreateCustomerCommandHandler,
         )
@@ -81,6 +90,10 @@ class MediatorProvider(Provider):
         mediator.register_query(
             query=GetAllTicketTypesQuery,
             query_handler=GetAllTicketTypesQueryHandler,
+        )
+        mediator.register_query(
+            query=GetTicketTypeQuery,
+            query_handler=GetTicketTypeQueryHandler,
         )
 
         return mediator
@@ -105,8 +118,11 @@ class TicketProvider(Provider):
     ticket_repository = provide(init_beanie_ticket_repository, provides=TicketRepository, scope=Scope.APP)
 
     create_ticket_type_command_handler = provide(CreateTicketTypeCommandHandler)
+    update_ticket_type_command_handler = provide(UpdateTicketTypeCommandHandler)
+    delete_ticket_type_command_handler = provide(DeleteTicketTypeCommandHandler)
 
     get_all_ticket_types_query_handler = provide(GetAllTicketTypesQueryHandler)
+    get_ticket_type_query_handler = provide(GetTicketTypeQueryHandler)
 
 
 class CustomerProvider(Provider):

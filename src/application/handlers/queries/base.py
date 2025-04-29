@@ -8,5 +8,5 @@ from src.application.queries.base import BaseQuery
 @dataclass(frozen=True, eq=False)
 class BaseQueryHandler[QT:BaseQuery, QR:Any](ABC):
     @abstractmethod
-    async def handle(self, event: QT) -> QR:
+    async def handle(self, query: QT) -> QR:
         pass
