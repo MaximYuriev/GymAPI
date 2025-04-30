@@ -1,13 +1,16 @@
 import uuid
+from typing import Annotated
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand
 from src.application.mediator.mediator import Mediator
+from src.application.queries.customer import GetAllCustomerTicketQuery
 from src.domain.entities.customer import Customer
 from src.domain.entities.ticket import Ticket
+from src.presentation.api.commons.pagination import PaginationQueryParams
 from src.presentation.api.commons.response import APIResponse
 from src.presentation.api.schemas.customer import CustomerSchema, CreateCustomerSchema
 from src.presentation.api.schemas.ticket import TicketSchema, BuyTicketSchema
@@ -51,4 +54,24 @@ async def buy_new_ticket_handler(
     return APIResponse(
         detail="Новый абонемент успешно куплен!",
         data=TicketSchema.from_entity(ticket)
+    )
+
+
+@customer_router.get("/{customer_id}/ticket/")
+@inject
+async def get_all_customer_ticket_list_handler(
+        customer_id: uuid.UUID,
+        pagination_params: Annotated[PaginationQueryParams, Query()],
+        mediator: FromDishka[Mediator],
+) -> APIResponse[TicketSchema]:
+    query = GetAllCustomerTicketQuery(
+        customer_id=customer_id,
+        limit=pagination_params.limit,
+        offset=pagination_params.offset,
+    )
+    ticket_list: list[Ticket] = await mediator.handle_query(query)
+
+    return APIResponse(
+        detail="Список абонементов клиента:",
+        data=[TicketSchema.from_entity(ticket) for ticket in ticket_list]
     )

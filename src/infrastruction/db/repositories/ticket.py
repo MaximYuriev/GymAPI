@@ -54,3 +54,18 @@ class BeanieTicketRepository(TicketRepository):
             },
         )
         return bool(await query)
+
+    async def get_all_customer_ticket_list(self, customer_id: uuid.UUID, limit: int, offset: int) -> list[Ticket]:
+        query = (
+            TicketModel.find(
+                {
+                    "customer_id": customer_id,
+                },
+            )
+            .limit(limit)
+            .skip(offset)
+            .sort("-expression_date")
+            .to_list()
+        )
+        model_list = await query
+        return [model.to_entity() for model in model_list]
