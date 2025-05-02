@@ -8,13 +8,14 @@ from src.application.handlers.commands.customer import CreateCustomerCommandHand
 from src.application.handlers.commands.ticket import CreateTicketTypeCommandHandler, UpdateTicketTypeCommandHandler, \
     DeleteTicketTypeCommandHandler
 from src.application.handlers.events.customer import NewCustomerCreatedEventHandler, CustomerBoughtNewTicketEventHandler
-from src.application.handlers.queries.customer import GetAllCustomerTicketQueryHandler
+from src.application.handlers.queries.customer import GetAllCustomerTicketQueryHandler, \
+    GetActiveCustomerTicketQueryHandler
 from src.application.handlers.queries.ticket import GetAllTicketTypesQueryHandler, GetTicketTypeQueryHandler
 from src.application.interfaces.repositories.customer import CustomerRepository
 from src.application.interfaces.repositories.ticket import TicketTypeRepository, TicketRepository
 from src.application.mediator.mediator import Mediator
 from src.application.mediator.protocols.event_mediator import EventMediator
-from src.application.queries.customer import GetAllCustomerTicketQuery
+from src.application.queries.customer import GetAllCustomerTicketQuery, GetActiveCustomerTicketQuery
 from src.application.queries.ticket import GetAllTicketTypesQuery, GetTicketTypeQuery
 from src.config import Config, config
 from src.domain.events.customer import NewCustomerCreatedEvent, CustomerBoughtNewTicketEvent
@@ -101,6 +102,10 @@ class MediatorProvider(Provider):
             query=GetAllCustomerTicketQuery,
             query_handler=GetAllCustomerTicketQueryHandler,
         )
+        mediator.register_query(
+            query=GetActiveCustomerTicketQuery,
+            query_handler=GetActiveCustomerTicketQueryHandler,
+        )
 
         return mediator
 
@@ -147,6 +152,7 @@ class CustomerProvider(Provider):
     bought_new_ticket_event_handler = provide(CustomerBoughtNewTicketEventHandler)
 
     get_all_customer_ticket_handler = provide(GetAllCustomerTicketQueryHandler)
+    get_active_customer_ticket_handler = provide(GetActiveCustomerTicketQueryHandler)
 
 
 container = make_async_container(

@@ -69,3 +69,12 @@ class BeanieTicketRepository(TicketRepository):
         )
         model_list = await query
         return [model.to_entity() for model in model_list]
+
+    async def get_active_customer_ticket(self, customer_id: uuid.UUID) -> Ticket | None:
+        model = await TicketModel.find_one({
+            "customer_id": customer_id,
+            "is_active": True,
+        })
+
+        if model is not None:
+            return model.to_entity()

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Query
 
 from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand
 from src.application.mediator.mediator import Mediator
-from src.application.queries.customer import GetAllCustomerTicketQuery
+from src.application.queries.customer import GetAllCustomerTicketQuery, GetActiveCustomerTicketQuery
 from src.domain.entities.customer import Customer
 from src.domain.entities.ticket import Ticket
 from src.presentation.api.commons.pagination import PaginationQueryParams
@@ -74,4 +74,21 @@ async def get_all_customer_ticket_list_handler(
     return APIResponse(
         detail="Список абонементов клиента:",
         data=[TicketSchema.from_entity(ticket) for ticket in ticket_list]
+    )
+
+
+@customer_router.get("/{customer_id}/ticket/active/")
+@inject
+async def get_active_customer_ticket_handler(
+        customer_id: uuid.UUID,
+        mediator: FromDishka[Mediator],
+) -> APIResponse[TicketSchema]:
+    query = GetActiveCustomerTicketQuery(
+        customer_id=customer_id,
+    )
+    active_ticket: Ticket = await mediator.handle_query(query)
+
+    return APIResponse(
+        detail="Активный абонемент найден!",
+        data=TicketSchema.from_entity(active_ticket),
     )
