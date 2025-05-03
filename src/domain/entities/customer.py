@@ -3,7 +3,8 @@ from dataclasses import dataclass, field
 
 from src.domain.entities.base import BaseEntity
 from src.domain.entities.ticket import Ticket, TicketType
-from src.domain.events.customer import NewCustomerCreatedEvent, CustomerBoughtNewTicketEvent
+from src.domain.events.customer import NewCustomerCreatedEvent, CustomerBoughtNewTicketEvent, \
+    CustomerGotAccessToTrainingEvent
 from src.domain.values.name import Name, Patronymic, Surname
 from src.domain.values.phone import PhoneNumber
 
@@ -51,3 +52,14 @@ class Customer(BaseEntity):
         self._push_event(event)
 
         return ticket
+
+    def get_access_to_training(self, ticket: Ticket) -> None:
+        event = CustomerGotAccessToTrainingEvent(
+            name=self.name.value,
+            surname=self.surname.value,
+            patronymic=self.patronymic.value,
+            phone=self.phone.value,
+            workout_number=ticket.workout_number.value,
+            expression_date=ticket.expression_date,
+        )
+        self._push_event(event)

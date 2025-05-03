@@ -2,12 +2,14 @@ from beanie import init_beanie
 from dishka import Provider, from_context, Scope, provide, make_async_container
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand
+from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand, GetAccessToTrainingCommand
 from src.application.commands.ticket import CreateTicketTypeCommand, UpdateTicketTypeCommand, DeleteTicketTypeCommand
-from src.application.handlers.commands.customer import CreateCustomerCommandHandler, BuyNewTicketCommandHandler
+from src.application.handlers.commands.customer import CreateCustomerCommandHandler, BuyNewTicketCommandHandler, \
+    GetAccessToTrainingCommandHandler
 from src.application.handlers.commands.ticket import CreateTicketTypeCommandHandler, UpdateTicketTypeCommandHandler, \
     DeleteTicketTypeCommandHandler
-from src.application.handlers.events.customer import NewCustomerCreatedEventHandler, CustomerBoughtNewTicketEventHandler
+from src.application.handlers.events.customer import NewCustomerCreatedEventHandler, \
+    CustomerBoughtNewTicketEventHandler, CustomerGotAccessToTrainingEventHandler
 from src.application.handlers.queries.customer import GetAllCustomerTicketQueryHandler, \
     GetActiveCustomerTicketQueryHandler
 from src.application.handlers.queries.ticket import GetAllTicketTypesQueryHandler, GetTicketTypeQueryHandler
@@ -18,7 +20,8 @@ from src.application.mediator.protocols.event_mediator import EventMediator
 from src.application.queries.customer import GetAllCustomerTicketQuery, GetActiveCustomerTicketQuery
 from src.application.queries.ticket import GetAllTicketTypesQuery, GetTicketTypeQuery
 from src.config import Config, config
-from src.domain.events.customer import NewCustomerCreatedEvent, CustomerBoughtNewTicketEvent
+from src.domain.events.customer import NewCustomerCreatedEvent, CustomerBoughtNewTicketEvent, \
+    CustomerGotAccessToTrainingEvent
 from src.infrastruction.db.models.customer import CustomerModel
 from src.infrastruction.db.models.ticket import TicketTypeModel, TicketModel
 from src.infrastruction.db.repositories.customer import BeanieCustomerRepository
@@ -66,6 +69,10 @@ class MediatorProvider(Provider):
             event=CustomerBoughtNewTicketEvent,
             event_handler=CustomerBoughtNewTicketEventHandler,
         )
+        mediator.register_event(
+            event=CustomerGotAccessToTrainingEvent,
+            event_handler=CustomerGotAccessToTrainingEventHandler,
+        )
 
         # register commands
         mediator.register_command(
@@ -87,6 +94,10 @@ class MediatorProvider(Provider):
         mediator.register_command(
             command=BuyNewTicketCommand,
             command_handler=BuyNewTicketCommandHandler,
+        )
+        mediator.register_command(
+            command=GetAccessToTrainingCommand,
+            command_handler=GetAccessToTrainingCommandHandler,
         )
 
         # register queries
@@ -147,6 +158,7 @@ class CustomerProvider(Provider):
 
     create_customer_command_handler = provide(CreateCustomerCommandHandler)
     buy_new_ticket_command_handler = provide(BuyNewTicketCommandHandler)
+    get_accept_to_training_command_handler = provide(GetAccessToTrainingCommandHandler)
 
     new_customer_created_event_handler = provide(NewCustomerCreatedEventHandler)
     bought_new_ticket_event_handler = provide(CustomerBoughtNewTicketEventHandler)

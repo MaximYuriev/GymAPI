@@ -16,3 +16,9 @@ class CreateCustomerCommand(BaseCommand):
 class BuyNewTicketCommand(BaseCommand):
     customer_id: uuid.UUID
     ticket_type_id: uuid.UUID
+
+
+@dataclass(frozen=True, eq=False)
+class GetAccessToTrainingCommand(BaseCommand):
+    customer_id: uuid.UUID
+    ticket_id: uuid.UUID

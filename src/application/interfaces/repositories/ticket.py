@@ -49,3 +49,11 @@ class TicketRepository(ABC):
     @abstractmethod
     async def get_active_customer_ticket(self, customer_id: uuid.UUID) -> Ticket | None:
         pass
+
+    @abstractmethod
+    async def get_ticket_by_id(self, ticket_id: uuid.UUID) -> Ticket | None:
+        pass
+
+    @abstractmethod
+    async def update_ticket(self, ticket: Ticket) -> None:
+        pass

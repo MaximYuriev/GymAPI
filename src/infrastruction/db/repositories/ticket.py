@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 from src.application.interfaces.repositories.ticket import TicketTypeRepository, TicketRepository
 from src.domain.entities.ticket import TicketType, Ticket
+from src.domain.values.base import BaseValueObject
 from src.infrastruction.db.models.ticket import TicketTypeModel, TicketModel
 
 
@@ -78,3 +79,17 @@ class BeanieTicketRepository(TicketRepository):
 
         if model is not None:
             return model.to_entity()
+
+    async def get_ticket_by_id(self, ticket_id: uuid.UUID) -> Ticket | None:
+        model = await TicketModel.find_one({"ticket_id": ticket_id})
+
+        if model is not None:
+            return model.to_entity()
+
+    async def update_ticket(self, ticket: Ticket) -> None:
+        model = await TicketModel.find_one({"ticket_id": ticket.ticket_id})
+
+        model.is_active = ticket.is_active
+        model.workout_number = ticket.workout_number.value
+
+        await model.save()

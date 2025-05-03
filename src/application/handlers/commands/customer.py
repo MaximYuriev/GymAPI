@@ -1,9 +1,11 @@
+import datetime
 from dataclasses import dataclass
 
-from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand
+from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand, GetAccessToTrainingCommand
 from src.application.exceptions.customer import PhoneNumberNotUniqueException, CustomerNotFoundException, \
     CustomerAlreadyHasActiveTicketException
-from src.application.exceptions.ticket import TicketTypeNotFoundException
+from src.application.exceptions.ticket import TicketTypeNotFoundException, TicketNotFoundException, \
+    TicketIsNotActiveException, TicketActiveTimeExpireException, TicketNotEnoughWorkoutNumberException
 from src.application.handlers.commands.base import BaseCommandHandler
 from src.application.interfaces.repositories.customer import CustomerRepository
 from src.application.interfaces.repositories.ticket import TicketTypeRepository, TicketRepository
@@ -63,5 +65,40 @@ class BuyNewTicketCommandHandler(BaseCommandHandler):
 
         for event in customer.pull_event():
             await self._event_mediator.handle_event(event)
+
+        return ticket
+
+
+@dataclass(frozen=True, eq=False)
+class GetAccessToTrainingCommandHandler(BaseCommandHandler):
+    _customer_repository: CustomerRepository
+    _ticket_repository: TicketRepository
+
+    async def handle(self, command: GetAccessToTrainingCommand) -> Ticket:
+        customer = await self._customer_repository.get_customer_by_id(command.customer_id)
+        if customer is None:
+            raise CustomerNotFoundException(command.customer_id)
+
+        ticket = await self._ticket_repository.get_ticket_by_id(command.ticket_id)
+        if ticket is None:
+            raise TicketNotFoundException(command.ticket_id)
+
+        if not ticket.is_active:
+            raise TicketIsNotActiveException(ticket.ticket_id)
+
+        if ticket.expression_date < datetime.date.today():
+            ticket.is_active = False
+            await self._ticket_repository.update_ticket(ticket)
+            raise TicketActiveTimeExpireException(ticket.expression_date)
+
+        if ticket.workout_number.value == 0:
+            ticket.is_active = False
+            await self._ticket_repository.update_ticket(ticket)
+            raise TicketNotEnoughWorkoutNumberException
+
+        ticket.reduce_workout_number()
+        await self._ticket_repository.update_ticket(ticket)
+
+        customer.get_access_to_training(ticket=ticket)
 
         return ticket

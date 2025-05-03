@@ -5,7 +5,7 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Query
 
-from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand
+from src.application.commands.customer import CreateCustomerCommand, BuyNewTicketCommand, GetAccessToTrainingCommand
 from src.application.mediator.mediator import Mediator
 from src.application.queries.customer import GetAllCustomerTicketQuery, GetActiveCustomerTicketQuery
 from src.domain.entities.customer import Customer
@@ -91,4 +91,23 @@ async def get_active_customer_ticket_handler(
     return APIResponse(
         detail="Активный абонемент найден!",
         data=TicketSchema.from_entity(active_ticket),
+    )
+
+
+@customer_router.get("/{customer_id}/ticket/{ticket_id}/")
+@inject
+async def get_access_to_training_handler(
+        customer_id: uuid.UUID,
+        ticket_id: uuid.UUID,
+        mediator: FromDishka[Mediator],
+) -> APIResponse[TicketSchema]:
+    command = GetAccessToTrainingCommand(
+        customer_id=customer_id,
+        ticket_id=ticket_id,
+    )
+    ticket: Ticket = await mediator.handle_command(command)
+
+    return APIResponse(
+        detail="Доступ к тренировке успешно получен!",
+        data=TicketSchema.from_entity(ticket),
     )

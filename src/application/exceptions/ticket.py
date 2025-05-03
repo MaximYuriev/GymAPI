@@ -1,3 +1,4 @@
+import datetime
 import uuid
 from dataclasses import dataclass
 
@@ -29,3 +30,37 @@ class ActiveTicketNotFoundException(ApplicationException):
     @property
     def message(self) -> str:
         return f"Активный абонемент для клиента с id='{self.customer_id}' не найден!"
+
+
+@dataclass(frozen=True, eq=False)
+class TicketNotFoundException(ApplicationException):
+    ticket_id: uuid.UUID
+
+    @property
+    def message(self) -> str:
+        return f"Абонемент с id='{self.ticket_id}' не найден!"
+
+
+@dataclass(frozen=True, eq=False)
+class TicketIsNotActiveException(ApplicationException):
+    ticket_id: uuid.UUID
+
+    @property
+    def message(self) -> str:
+        return f"Абонемент с id='{self.ticket_id}' не является активным!"
+
+
+@dataclass(frozen=True, eq=False)
+class TicketActiveTimeExpireException(ApplicationException):
+    expression_date: datetime.date
+
+    @property
+    def message(self) -> str:
+        return f"Абонемент истек! Он был действителен до {self.expression_date}"
+
+
+@dataclass(frozen=True, eq=False)
+class TicketNotEnoughWorkoutNumberException(ApplicationException):
+    @property
+    def message(self) -> str:
+        return "Не достаточно тренировок по абонементу!"

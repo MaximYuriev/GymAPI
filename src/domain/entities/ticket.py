@@ -32,3 +32,8 @@ class Ticket(BaseEntity):
             workout_number=ticket_type.workout_number,
             customer_id=customer_id,
         )
+
+    def reduce_workout_number(self) -> None:
+        self.workout_number.reduce_value()
+        if self.workout_number.value == 0:
+            self.is_active = False

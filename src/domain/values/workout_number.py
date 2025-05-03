@@ -20,3 +20,7 @@ class WorkoutNumber(BaseValueObject):
             if self.value > other.value:
                 return True
         return False
+
+    def reduce_value(self) -> None:
+        if self._value is not None:
+            self._value -= 1
