@@ -1,0 +1,15 @@
+services:
+  rmq:
+    image: rabbitmq:3.13.7-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RMQ_PASS}
+    volumes:
+      - rmq-data:/data/rmq
+
+volumes:
+  rmq-data:

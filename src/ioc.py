@@ -1,3 +1,5 @@
+import aio_pika
+from aio_pika.abc import AbstractRobustConnection
 from beanie import init_beanie
 from dishka import Provider, from_context, Scope, provide, make_async_container
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -13,6 +15,7 @@ from src.application.handlers.events.customer import NewCustomerCreatedEventHand
 from src.application.handlers.queries.customer import GetAllCustomerTicketQueryHandler, \
     GetActiveCustomerTicketQueryHandler
 from src.application.handlers.queries.ticket import GetAllTicketTypesQueryHandler, GetTicketTypeQueryHandler
+from src.application.interfaces.brokers.amqp import AMQPMessageBroker
 from src.application.interfaces.repositories.customer import CustomerRepository
 from src.application.interfaces.repositories.ticket import TicketTypeRepository, TicketRepository
 from src.application.mediator.mediator import Mediator
@@ -22,6 +25,7 @@ from src.application.queries.ticket import GetAllTicketTypesQuery, GetTicketType
 from src.config import Config, config
 from src.domain.events.customer import NewCustomerCreatedEvent, CustomerBoughtNewTicketEvent, \
     CustomerGotAccessToTrainingEvent
+from src.infrastruction.broker.rabbit import RMQMessageBroker
 from src.infrastruction.db.models.customer import CustomerModel
 from src.infrastruction.db.models.ticket import TicketTypeModel, TicketModel
 from src.infrastruction.db.repositories.customer import BeanieCustomerRepository
@@ -48,6 +52,16 @@ class BeanieProvider(Provider):
         )
 
         return client
+
+
+class RMQProvider(Provider):
+    config = from_context(provides=Config, scope=Scope.APP)
+
+    @provide(scope=Scope.APP)
+    async def get_rmq_connection(self, _config: Config) -> AbstractRobustConnection:
+        return await aio_pika.connect_robust(_config.rmq.rmq_url)
+
+    RMQBroker = provide(RMQMessageBroker, provides=AMQPMessageBroker, scope=Scope.APP)
 
 
 class MediatorProvider(Provider):
@@ -154,7 +168,7 @@ class CustomerProvider(Provider):
     async def init_beanie_customer_repository(self, client: AsyncIOMotorClient) -> BeanieCustomerRepository:
         return BeanieCustomerRepository()
 
-    customer_repository = provide(BeanieCustomerRepository, provides=CustomerRepository, scope=Scope.APP)
+    customer_repository = provide(init_beanie_customer_repository, provides=CustomerRepository, scope=Scope.APP)
 
     create_customer_command_handler = provide(CreateCustomerCommandHandler)
     buy_new_ticket_command_handler = provide(BuyNewTicketCommandHandler)
@@ -169,6 +183,7 @@ class CustomerProvider(Provider):
 
 container = make_async_container(
     BeanieProvider(),
+    RMQProvider(),
     MediatorProvider(),
     TicketProvider(),
     CustomerProvider(),

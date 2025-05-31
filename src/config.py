@@ -20,8 +20,21 @@ class MongoDBConfig(BaseConfig):
         return f"mongodb://{self.username}:{self.password}@{self.host}:{self.port}"
 
 
+class RMQConfig(BaseConfig):
+    model_config = SettingsConfigDict(env_prefix="RMQ_")
+    host: str
+    port: str
+    user: str
+    password: str = Field(alias="RMQ_PASS")
+
+    @property
+    def rmq_url(self) -> str:
+        return f"amqp://{self.user}:{self.password}@{self.host}:{self.port}/"
+
+
 class Config(BaseSettings):
     mongodb: MongoDBConfig = Field(default_factory=MongoDBConfig)
+    rmq: RMQConfig = Field(default_factory=RMQConfig)
 
 
 config = Config()
