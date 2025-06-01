@@ -1,5 +1,7 @@
+from typing import AsyncGenerator
+
 import aio_pika
-from aio_pika.abc import AbstractRobustConnection
+from aio_pika.abc import AbstractRobustConnection, AbstractRobustChannel
 from beanie import init_beanie
 from dishka import Provider, from_context, Scope, provide, make_async_container
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -23,6 +25,8 @@ from src.application.mediator.protocols.event_mediator import EventMediator
 from src.application.queries.customer import GetAllCustomerTicketQuery, GetActiveCustomerTicketQuery
 from src.application.queries.ticket import GetAllTicketTypesQuery, GetTicketTypeQuery
 from src.config import Config, config
+from src.constants import CUSTOMER_EXCHANGE_NAME, NEW_CUSTOMER_CREATED_QUEUE_NAME, BOUGHT_TICKET_QUEUE_NAME, \
+    CUSTOMER_GOT_ACCESS_TO_TRAINING_QUEUE
 from src.domain.events.customer import NewCustomerCreatedEvent, CustomerBoughtNewTicketEvent, \
     CustomerGotAccessToTrainingEvent
 from src.infrastruction.broker.rabbit import RMQMessageBroker
@@ -61,7 +65,15 @@ class RMQProvider(Provider):
     async def get_rmq_connection(self, _config: Config) -> AbstractRobustConnection:
         return await aio_pika.connect_robust(_config.rmq.rmq_url)
 
-    RMQBroker = provide(RMQMessageBroker, provides=AMQPMessageBroker, scope=Scope.APP)
+    @provide(scope=Scope.REQUEST)
+    async def get_rmq_channel(
+            self,
+            connection: AbstractRobustConnection
+    ) -> AsyncGenerator[AbstractRobustChannel, None]:
+        async with connection:
+            yield await connection.channel()
+
+    RMQBroker = provide(RMQMessageBroker, provides=AMQPMessageBroker, scope=Scope.REQUEST)
 
 
 class MediatorProvider(Provider):
@@ -168,14 +180,48 @@ class CustomerProvider(Provider):
     async def init_beanie_customer_repository(self, client: AsyncIOMotorClient) -> BeanieCustomerRepository:
         return BeanieCustomerRepository()
 
+    @provide(scope=Scope.REQUEST)
+    def create_new_customer_created_event_handler(
+            self,
+            broker: AMQPMessageBroker,
+    ) -> NewCustomerCreatedEventHandler:
+        return NewCustomerCreatedEventHandler(
+            _message_broker=broker,
+            _exchange=CUSTOMER_EXCHANGE_NAME,
+            _queue=NEW_CUSTOMER_CREATED_QUEUE_NAME,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def create_bought_new_ticket_event_handler(
+            self,
+            broker: AMQPMessageBroker
+    ) -> CustomerBoughtNewTicketEventHandler:
+        return CustomerBoughtNewTicketEventHandler(
+            _message_broker=broker,
+            _exchange=CUSTOMER_EXCHANGE_NAME,
+            _queue=BOUGHT_TICKET_QUEUE_NAME,
+        )
+
+    @provide(scope=Scope.REQUEST)
+    def create_customer_got_access_to_training_event_handler(
+            self,
+            broker: AMQPMessageBroker,
+    ) -> CustomerGotAccessToTrainingEventHandler:
+        return CustomerGotAccessToTrainingEventHandler(
+            _message_broker=broker,
+            _exchange=CUSTOMER_EXCHANGE_NAME,
+            _queue=CUSTOMER_GOT_ACCESS_TO_TRAINING_QUEUE,
+        )
+
     customer_repository = provide(init_beanie_customer_repository, provides=CustomerRepository, scope=Scope.APP)
 
     create_customer_command_handler = provide(CreateCustomerCommandHandler)
     buy_new_ticket_command_handler = provide(BuyNewTicketCommandHandler)
     get_accept_to_training_command_handler = provide(GetAccessToTrainingCommandHandler)
 
-    new_customer_created_event_handler = provide(NewCustomerCreatedEventHandler)
-    bought_new_ticket_event_handler = provide(CustomerBoughtNewTicketEventHandler)
+    new_customer_created_event_handler = provide(create_new_customer_created_event_handler)
+    bought_new_ticket_event_handler = provide(create_bought_new_ticket_event_handler)
+    customer_got_access_to_training_event_handler = provide(create_customer_got_access_to_training_event_handler)
 
     get_all_customer_ticket_handler = provide(GetAllCustomerTicketQueryHandler)
     get_active_customer_ticket_handler = provide(GetActiveCustomerTicketQueryHandler)

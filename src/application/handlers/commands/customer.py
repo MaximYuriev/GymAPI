@@ -101,4 +101,7 @@ class GetAccessToTrainingCommandHandler(BaseCommandHandler):
 
         customer.get_access_to_training(ticket=ticket)
 
+        for event in customer.pull_event():
+            await self._event_mediator.handle_event(event)
+
         return ticket

@@ -1,0 +1,4 @@
+CUSTOMER_EXCHANGE_NAME = "customer"
+NEW_CUSTOMER_CREATED_QUEUE_NAME = "new-customer"
+BOUGHT_TICKET_QUEUE_NAME = "bought-ticket"
+CUSTOMER_GOT_ACCESS_TO_TRAINING_QUEUE = "customer-access-training"

@@ -9,6 +9,8 @@ from src.domain.events.base import BaseEvent
 @dataclass(frozen=True, eq=False)
 class BaseEventHandler[ET:BaseEvent, ER:Any](ABC):
     _message_broker: AMQPMessageBroker
+    _exchange: str
+    _queue: str
 
     @abstractmethod
     async def handle(self, event: ET) -> ER:
